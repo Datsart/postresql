@@ -1,49 +1,65 @@
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, DateTime
-import psycopg2 # для коннекта
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, DateTime, delete
+import psycopg2  # для коннекта с постгрес
 from datetime import datetime
 
-name_db = str(input('Введите название БД: '))
-dialect = str(input('Введите диалект: '))
-user = str(input('Введите юзера: '))
-password = str(input('Введите пароль: '))
-host = str(input('Введите хост: '))
-port = str(input('Введите порт: '))
+conn = psycopg2.connect(database='postgres', user='artemdatsenko', password='19980723', host='localhost',
+                        port='5432')  # первый коннект, подключение к стоковой БД
+# conn.autocommit = True
+cursor = conn.cursor()
 
-# Строка подключения к базе данных
-db_url = f'{dialect}://{user}:{password}@{host}:{port}/{name_db}' # для движка
+db_name = 'log_info'  # НАЗВАНИЕ НОВОЙ ИЛИ СТАРОЙ БД
 
-# Устанавливаем соединение с базой данных PostgreSQL
-conn = psycopg2.connect(
-    database=f'{name_db}', user=f'{user}', password=f'{password}', host=f'{host}', port=f'{port}'  # для курсора
+# Проверяем существование базы данных
+cursor.execute(f"SELECT EXISTS(SELECT 1 FROM pg_database WHERE datname = '{db_name}')")
+db_exists = cursor.fetchone()[0]
+
+# Если базы данных не существует, создаем новую
+if not db_exists:
+
+    cursor.execute(f"CREATE DATABASE {db_name}")
+    print(f"Создана база данных '{db_name}'")
+else:
+    print(f"База данных '{db_name}' уже существует")
+
+    # Подключаемся к новой базе данных
+conn = psycopg2.connect(database=f'{db_name}', user='artemdatsenko', password='19980723', host='localhost',
+                        port='5432'
+                        )
+#  проверка на существование таблицы
+cursor = conn.cursor()
+table_name = 'api_data'  # НАЗВАНИЕ НОВОЙ ИЛИ СТАРОЙ ТАБЛИЦЫ
+cursor.execute(
+    """
+    SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_name = %s
+    )
+    """,
+    (table_name,)
 )
-conn.autocommit = True  # Устанавливаем автоматический режим подтверждения транзакций
+exists = cursor.fetchone()[0]
 
-# Создаем объект метаданных для работы с SQLAlchemy
 metadata = MetaData()
-
-# Определяем структуру таблицы 'api_data'
-info = Table('api_data', metadata,
+info = Table(f'{table_name}', metadata,
              Column('id', Integer, primary_key=True, unique=True),
              Column('timestamp', DateTime(), default=datetime.now),
              Column('value', Integer),
              )
+db_url = 'postgresql://artemdatsenko:19980723@localhost:5432/log_info'  # для движка
+engine = create_engine(db_url)  # движок
+connection = engine.connect()  # подключение к БД
+if exists is False:
 
-# Создаем движок (engine) для работы с SQLAlchemy
-engine = create_engine(db_url, echo=True)  # Параметр echo=True выводит SQL-запросы в консоль
-
-# Пытаемся установить соединение с базой данных
-connection = engine.connect()
-print("Подключение успешно установлено.")
-
-# Создаем таблицу 'api_data' в базе данных
-# metadata.create_all(engine)
-
-cursor = conn.cursor()
-cursor.execute("SELECT EXISTS(SELECT 1 FROM pg_database WHERE datname = 'log_info')")
-exists = cursor.fetchone()[0] # здесь True или False
-print(exists)
-
-if exists is not True:
-    name_db = str(input('Введите название БД: '))
-    cursor.execute(f'CREATE DATABASE {name_db}')
-    print(f'Создана база данных {name_db}')
+    # Создаем таблицу 'api_data' в базе данных
+    metadata.create_all(engine)  # добавили в бд
+    connection.commit()
+else:
+    print('Такая таблица уже создана и очистили значения полей')
+    # удаление значений
+    delete_stmt = delete(info)
+    connection.execute(delete_stmt)
+    connection.commit()
+# Закрываем соединение
+cursor.close()
+conn.close()
