@@ -1,85 +1,58 @@
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, DateTime, delete
-import psycopg2  # для коннекта с постгрес
-from datetime import datetime
+from sqlalchemy import create_engine, text
+from sqlalchemy_utils import database_exists, create_database
 
-conn = psycopg2.connect(
-    database='postgres',
-    user='artemdatsenko',
-    password='19980723',
-    host='localhost',
-    port='5432'
-)  # первый коннект, подключение к стоковой БД
-conn.autocommit = True
-cursor = conn.cursor()
+user = str(input('Введите имя пользователя: ')).strip()
+password = str(input('Введите пароль: ')).strip()
+host = str(input('Введите хост: ')).strip()
+port = str(input('Введите порт: ')).strip()
+name_db = str(input('Введите имя начальной БД: ')).strip()
 
-db_name = 'log_info'  # НАЗВАНИЕ НОВОЙ ИЛИ СТАРОЙ БД
 
-# Проверяем существование базы данных
-cursor.execute(f"SELECT EXISTS(SELECT 1 FROM pg_database WHERE datname = '{db_name}')")
-db_exists = cursor.fetchone()[0]
+def create_connection(user, password, host, port, name_db):
+    """Вспомогательная функция создания соединения с БД"""
 
-# Если базы данных не существует, создаем новую
-if not db_exists:
+    alchemyEngine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{name_db}')
+    dbConnection = alchemyEngine.connect()
+    return dbConnection
 
-    cursor.execute(f"CREATE DATABASE {db_name}")
-    print(f"Создана база данных '{db_name}'")
+
+# первое подключение к стоковой БД
+dbConnection = create_connection(user, password, host, port, name_db)
+
+# dbConnection = create_connection('postgresql://artemdatsenko:19980723@localhost:5432/log_info')
+
+# проверка и создание новой БД
+new_db_name = 'log_info'
+
+engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{new_db_name}')
+
+if not database_exists(engine.url):  # проверка на существование БД
+    create_database(engine.url)
+    print(f'Создана БД {new_db_name}')
 else:
-    print(f"База данных '{db_name}' уже существует")
+    print('Такая БД уже есть')
 
-    # Подключаемся к новой базе данных
-conn = psycopg2.connect(
-    database=f'{db_name}',
-    user='artemdatsenko',
-    password='19980723',
-    host='localhost',
-    port='5432'
-)
-conn.autocommit = True
+# Создание подключения на новую БД
+dbConnection = create_connection(user, password, host, port, new_db_name)
+
 #  проверка на существование таблицы
-cursor = conn.cursor()
-table_name = 'api_data'  # НАЗВАНИЕ НОВОЙ ИЛИ СТАРОЙ ТАБЛИЦЫ
-cursor.execute(
-    """
-    CREATE TABLE IF NOT EXISTS public.api_data (
-        id SERIAL PRIMARY KEY,
-        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        value INTEGER
-    )
-    """
-)
-print(f"Таблица '{table_name}' успешно создана.")
-# Проверка наличия данных в таблице
-cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
-row_count = cursor.fetchone()[0]
+table_exists = engine.dialect.has_table(dbConnection, 'api_data')
 
-# Если таблица содержит данные, выполняем TRUNCATE TABLE
-if row_count > 0:
-    cursor.execute(f"TRUNCATE TABLE {table_name}")
-    print(f"Таблица '{table_name}' успешно очищена.")
+if table_exists:
+    truncate_sql = text('TRUNCATE TABLE public.api_data RESTART IDENTITY CASCADE')
+    dbConnection.execute(truncate_sql)
+    dbConnection.commit()
+    print('Такая таблица уже есть - очистили значения')
+
 else:
-    print(f"Таблица '{table_name}' не содержит данных. TRUNCATE не выполнен.")
-# exists = cursor.fetchone()[0]
-
-# metadata = MetaData()
-# info = Table(f'{table_name}', metadata,
-#              Column('id', Integer, primary_key=True, unique=True),
-#              Column('timestamp', DateTime(), default=datetime.now),
-#              Column('value', Integer),
-#              )
-# db_url = 'postgresql://artemdatsenko:19980723@localhost:5432/log_info'  # для движка
-# engine = create_engine(db_url)  # движок
-# connection = engine.connect()  # подключение к БД
-# if exists is False:
-#
-#     # Создаем таблицу 'api_data' в базе данных
-#     metadata.create_all(engine)  # добавили в бд
-#     connection.commit()
-# else:
-#     print('Такая таблица уже создана и очистили значения полей')
-#     # удаление значений
-#     delete_stmt = delete(info)
-#     connection.execute(delete_stmt)
-#     connection.commit()
-# # Закрываем соединение
-cursor.close()
-conn.close()
+    create_table_sql = """
+        CREATE TABLE public.api_data (
+            id SERIAL PRIMARY KEY,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            value INTEGER
+        )
+    """
+    dbConnection.execute(text(create_table_sql))
+    dbConnection.commit()
+    print('Создана таблица api_data')
+dbConnection.close()
