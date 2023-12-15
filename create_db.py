@@ -16,6 +16,7 @@ def create_connection():
     return dbConnection
 
 
+
 dbConnection = create_connection()
 
 sql = """
