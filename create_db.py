@@ -5,16 +5,15 @@ DB_URI = 'postgresql://artemdatsenko:19980723@localhost:5432/log_info'
 if database_exists(DB_URI):
     drop_database(DB_URI)
 
-
 create_database(DB_URI)
 print('Создана новая БД')
+
 
 def create_connection():
     """Вспомогательная функция создния соединения с БД"""
     alchemyEngine = create_engine(DB_URI)
     dbConnection = alchemyEngine.connect()
     return dbConnection
-
 
 
 dbConnection = create_connection()
