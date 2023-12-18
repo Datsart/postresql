@@ -19,13 +19,12 @@ def create_connection():
 dbConnection = create_connection()
 
 sql = """
-    CREATE TABLE IF NOT EXISTS api_data (
-    username VARCHAR(45) NOT NULL,
-    password VARCHAR(450) NOT NULL,
-    enabled INTEGER NOT NULL DEFAULT 1,
-    PRIMARY KEY (username)
-)
+    CREATE TABLE IF NOT EXISTS public.api_data (
+    id SERIAL PRIMARY KEY,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    value VARCHAR(255) NOT NULL)
 """
 dbConnection.execute(text(sql))
 dbConnection.commit()
+dbConnection.close()
 print('Создана новая таблица')
