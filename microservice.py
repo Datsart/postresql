@@ -3,7 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import requests
 from healthcheck import HealthCheck
-from threading import Thread
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://artemdatsenko:19980723@localhost:5432/log_info'
@@ -32,6 +31,12 @@ def send_message():
     db.session.commit()
 
     return jsonify({"score": score})
+
+
+@app.route('/healthcheck', methods=['GET'])
+def healthcheck():
+    health_status = health.run()
+    return jsonify({"healthcheck": health_status})
 
 
 if __name__ == '__main__':
