@@ -1,12 +1,17 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+import requests
+from healthcheck import HealthCheck
+from threading import Thread
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://artemdatsenko:19980723@localhost:5432/log_info'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+
+health = HealthCheck()
 
 
 class LogInfo(db.Model):
@@ -19,8 +24,9 @@ class LogInfo(db.Model):
 
 @app.route('/sendmsg', methods=['POST'])
 def send_message():
-    score = float(request.form.get('score'))
-
+    # score = request.form.get('score')
+    data = request.get_json()
+    score = float(data['score'])
     log_info = LogInfo(value=score)
     db.session.add(log_info)
     db.session.commit()
@@ -29,4 +35,4 @@ def send_message():
 
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5050)
+    app.run(host='127.0.0.1', port=5050, debug=True)
