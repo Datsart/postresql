@@ -1,7 +1,9 @@
+#!/usr/bin/env python3
 
 from flask import Flask
 from threading import Thread
 import os
+
 app = Flask(__name__)
 
 
@@ -18,13 +20,12 @@ def health_check():
 def all_required_services_are_running():
     # Replace this with your logic to check the health of your services
     # For example, check if the required processes are running
-    return 'OK'
+    return True
 
 
 def run_flask():
-    app.run(host='127.0.0.1', port=int(os.environ.get('PORT', 8000)))
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
 
 
 if __name__ == '__main__':
-    flask_thread = Thread(target=run_flask)
-    flask_thread.start()
+    app.run(host='127.0.0.1', port=5050, debug=True)
