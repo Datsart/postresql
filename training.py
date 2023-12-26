@@ -69,9 +69,9 @@ def send_data_size():
     clients_count_countries = len(clients_countries)
 
     ################################  ПЯТОЕ ЗАДАНИЕ
-    df['expenses_ratio'] = df['costs'] / df['deposit']
+    df['expenses_ratio'] = df['costs'] / df['deposit'] # создали новый столбец
 
-    max_ratio_client = df.loc[df['expenses_ratio'].idxmax()]
+    max_ratio_client = df.loc[df['expenses_ratio'].idxmax()] # достали клиента с max 
 
     email_max_ratio_client = max_ratio_client['email']
     time.sleep(5)
