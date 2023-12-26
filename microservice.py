@@ -9,6 +9,7 @@ from datetime import datetime
 import pandas as pd
 import numpy
 import time
+import csv
 
 numpy.random.seed(22)
 fake = Faker()
@@ -52,12 +53,12 @@ def healthcheck():
 def send_data_size():
     data = request.get_json()
     size = int(data['data_size'])
+    counter = int(data['hash'])
 
     # print(size)  # в size наше число
 
     def generate_data():
         result = []
-        # вместо range - data_size
         for i in range(size):
             email = fake.email()
             id = random.randint(0, 100)
@@ -84,11 +85,11 @@ def send_data_size():
 
     ################################ ПЕРОЕ ЗАДАНИЕ
     unique_countries = len(df.country.unique())  # Количество уникальных стран в выборке
-    time.sleep(5)
+    # time.sleep(5)
     ################################ ВТОРОЕ ЗАДАНИЕ
     deposits_sum = df.groupby('country')['deposit'].sum()  # группируем страны
     country_max_deposits = deposits_sum.idxmax()  # страна где больше всего депозитов
-    time.sleep(5)
+    # time.sleep(5)
     ################################ ТРЕТЬЕ ЗАДАНИЕ
     email_count = df.groupby('id')['email'].nunique()
 
@@ -97,7 +98,7 @@ def send_data_size():
 
     # получаем количество клиентов с более чем 1 email
     clients_count_email = len(clients_with_emails)
-    time.sleep(5)
+    # time.sleep(5)
     ################################ ЧЕТВЕРТОЕ ЗАДАНИЕ
     country_count = df.groupby('id')['country'].nunique()
 
@@ -111,8 +112,18 @@ def send_data_size():
     max_ratio_client = df.loc[df['expenses_ratio'].idxmax()]  # достали клиента с max
 
     email_max_ratio_client = max_ratio_client['email']
-    time.sleep(5)
-    return jsonify({"data_size": size})
+    # time.sleep(5)
+
+    df = pd.DataFrame({
+        'hash': [counter],
+        'feature': ['Страна в которой больше всего осталось депозитов'],
+        'value': [country_max_deposits],
+        'datetime': [datetime.utcnow()]
+    })
+
+    df.to_csv('result.csv', mode='a', header=False, index=False)
+
+    return jsonify({"data_size": size, 'hash': counter})
 
 
 if __name__ == '__main__':

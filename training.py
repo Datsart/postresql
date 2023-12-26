@@ -15,7 +15,7 @@ app = Flask(__name__)
 def send_data_size():
     data = request.get_json()
     size = int(data['data_size'])
-
+    counter = int(data['hash'])
     # print(size)  # в size наше число
 
     def generate_data():
@@ -71,11 +71,12 @@ def send_data_size():
     ################################  ПЯТОЕ ЗАДАНИЕ
     df['expenses_ratio'] = df['costs'] / df['deposit'] # создали новый столбец
 
-    max_ratio_client = df.loc[df['expenses_ratio'].idxmax()] # достали клиента с max 
+    max_ratio_client = df.loc[df['expenses_ratio'].idxmax()] # достали клиента с max
 
     email_max_ratio_client = max_ratio_client['email']
     time.sleep(5)
-    return jsonify({"data_size": size})
+
+    return jsonify({"data_size": size, 'hash': counter})
 
 
 if __name__ == '__main__':
