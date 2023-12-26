@@ -4,7 +4,7 @@ from datetime import datetime
 from flask import Flask, request, jsonify
 import pandas as pd
 import numpy
-
+import time
 numpy.random.seed(22)
 fake = Faker()
 
@@ -46,27 +46,27 @@ def send_data_size():
     df = pd.DataFrame(generate_data())  # в рез-те работы функции у нас список словарей
 
     ################################ ПЕРОЕ ЗАДАНИЕ
-    unique_countries_count = df['country'].nunique()  # Количество уникальных стран в выборке
-
+    unique_countries = len(df.country.unique())  # Количество уникальных стран в выборке
+    time.sleep(5)
     ################################ ВТОРОЕ ЗАДАНИЕ
-    total_deposits_by_country = df.groupby('country')['deposit'].sum()  # группируем страны
-    country_with_max_deposits = total_deposits_by_country.idxmax()  # страна где больше всего депозитов
-
+    deposits_sum = df.groupby('country')['deposit'].sum()  # группируем страны
+    country_max_deposits = deposits_sum.idxmax()  # страна где больше всего депозитов
+    time.sleep(5)
     ################################ ТРЕТЬЕ ЗАДАНИЕ
-    client_email_counts = df.groupby('id')['email'].nunique()
+    email_count = df.groupby('id')['email'].nunique()
 
-    clients_with_multiple_emails = client_email_counts[
-        client_email_counts > 1]  ## фильтруем только тех клиентов, у которых больше 1 email
+    clients_with_emails = email_count[
+        email_count > 1]  ## фильтруем только тех клиентов, у которых больше 1 email
 
     # получаем количество клиентов с более чем 1 email
-    num_clients_with_multiple_emails = len(clients_with_multiple_emails)
-
+    clients_count_email = len(clients_with_emails)
+    time.sleep(5)
     ################################ ЧЕТВЕРТОЕ ЗАДАНИЕ
-    client_country_counts = df.groupby('id')['country'].nunique()
+    country_count = df.groupby('id')['country'].nunique()
 
-    clients_in_multiple_countries = client_country_counts[client_country_counts > 1]
+    clients_countries = country_count[country_count > 1]
 
-    num_clients_in_multiple_countries = len(clients_in_multiple_countries)
+    clients_count_countries = len(clients_countries)
 
     ################################  ПЯТОЕ ЗАДАНИЕ
     df['expenses_ratio'] = df['costs'] / df['deposit']
@@ -74,6 +74,7 @@ def send_data_size():
     max_ratio_client = df.loc[df['expenses_ratio'].idxmax()]
 
     email_max_ratio_client = max_ratio_client['email']
+    time.sleep(5)
     return jsonify({"data_size": size})
 
 
