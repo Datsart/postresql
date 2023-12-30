@@ -1,66 +1,59 @@
 import random
 from faker import Faker
-from datetime import datetime
-from flask import Flask, request, jsonify
+from datetime import datetime, timezone
 import pandas as pd
 import numpy
 import time
+import sys
+
 numpy.random.seed(22)
 fake = Faker()
 
-app = Flask(__name__)
+
+def generate_data(size):
+    result = []
+    for i in range(int(size)):
+        email = fake.email()
+        id = random.randint(0, 100)
+        deposit = random.randint(0, 10_000)
+        costs = random.randint(0, 10_000)
+        countries_list = ['Россия', 'Казахстан', 'США', 'Германия', 'Канада']
+        country = random.choice(countries_list)
+        date = fake.date_this_year()
+
+        formatted_date = datetime.strftime(date, "%Y-%m-%d %H:%M:%S")
+
+        data_dict = {
+            'email': email,
+            'id': id,
+            'deposit': deposit,
+            'costs': costs,
+            'country': country,
+            'date': formatted_date,
+        }
+        result.append(data_dict)
+    return result
 
 
-@app.route('/training_model', methods=['POST'])
-def send_data_size():
-    data = request.get_json()
-    size = int(data['data_size'])
-    counter = int(data['hash'])
-    # print(size)  # в size наше число
-
-    def generate_data():
-        result = []
-        # вместо range - data_size
-        for i in range(size):
-            email = fake.email()
-            id = random.randint(0, 100)
-            deposit = random.randint(0, 10_000)
-            costs = random.randint(0, 10_000)
-            countries_list = ['Россия', 'Казахстан', 'США', 'Германия', 'Канада']
-            country = random.choice(countries_list)
-            date = fake.date_this_year()
-
-            formatted_date = datetime.strftime(date, "%Y-%m-%d")
-
-            data_dict = {
-                'email': email,
-                'id': id,
-                'deposit': deposit,
-                'costs': costs,
-                'country': country,
-                'date': formatted_date,
-            }
-            result.append(data_dict)
-        return result
-
-    df = pd.DataFrame(generate_data())  # в рез-те работы функции у нас список словарей
-
+def result_metrics():
+    df = pd.DataFrame(generate_data(size))
+    value_time = 5
     ################################ ПЕРОЕ ЗАДАНИЕ
-    unique_countries = len(df.country.unique())  # Количество уникальных стран в выборке
-    time.sleep(5)
+    unique_countries = len(df['country'].unique())  # Количество уникальных стран в выборке
+    time.sleep(value_time)
     ################################ ВТОРОЕ ЗАДАНИЕ
     deposits_sum = df.groupby('country')['deposit'].sum()  # группируем страны
     country_max_deposits = deposits_sum.idxmax()  # страна где больше всего депозитов
-    time.sleep(5)
+    time.sleep(value_time)
     ################################ ТРЕТЬЕ ЗАДАНИЕ
     email_count = df.groupby('id')['email'].nunique()
 
     clients_with_emails = email_count[
-        email_count > 1]  ## фильтруем только тех клиентов, у которых больше 1 email
+        email_count > 1]  # фильтруем только тех клиентов, у которых больше 1 email
 
     # получаем количество клиентов с более чем 1 email
     clients_count_email = len(clients_with_emails)
-    time.sleep(5)
+    time.sleep(value_time)
     ################################ ЧЕТВЕРТОЕ ЗАДАНИЕ
     country_count = df.groupby('id')['country'].nunique()
 
@@ -69,15 +62,22 @@ def send_data_size():
     clients_count_countries = len(clients_countries)
 
     ################################  ПЯТОЕ ЗАДАНИЕ
-    df['expenses_ratio'] = df['costs'] / df['deposit'] # создали новый столбец
+    df['expenses_ratio'] = df['costs'] / df['deposit']  # создали новый столбец
 
-    max_ratio_client = df.loc[df['expenses_ratio'].idxmax()] # достали клиента с max
+    max_ratio_client = df.loc[df['expenses_ratio'].idxmax()]  # достали клиента с max
 
     email_max_ratio_client = max_ratio_client['email']
-    time.sleep(5)
+    time.sleep(value_time)
 
-    return jsonify({"data_size": size, 'hash': counter})
+    df = pd.DataFrame({
+        'feature': ['Страна в которой больше всего осталось депозитов'],
+        'value': [country_max_deposits],
+        'datetime': [datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")]
+    })
+
+    df.to_csv('result.csv', mode='a', header=False, index=False)
+    print('Операция выполнена')
 
 
-if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5050, debug=True)
+size = sys.argv[1]
+result_metrics()
