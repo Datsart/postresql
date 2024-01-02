@@ -66,6 +66,13 @@ def training_model():
     global current_process
 
     if current_process and current_process.is_alive():
+        df = pd.DataFrame({
+            'message': ['Подождите завершения предыдущего процесса'],
+            'hash': [1],
+            'datetime': [f'{datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")}']
+        })
+
+        df.to_csv('result.csv', mode='a', header=False, index=False)
         return jsonify({"message": "Подождите завершения предыдущего процесса",
                         "hash": 1,
                         'time': f'{datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")}'})
@@ -74,7 +81,13 @@ def training_model():
     process.start()
 
     current_process = process
+    df = pd.DataFrame({
+        'message': ['Процесс запущен'],
+        'hash': [0],
+        'datetime': [f'{datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")}']
+    })
 
+    df.to_csv('result.csv', mode='a', header=False, index=False)
     return jsonify({"message": "Процесс запущен",
                     "hash": 0,
                     'time': f'{datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")}'
