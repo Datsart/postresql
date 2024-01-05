@@ -65,7 +65,7 @@ def run_training():
 def training_model():
     global current_process
 
-    if current_process and current_process.is_alive():
+    if current_process and current_process.poll() is None:
         df = pd.DataFrame({
             'message': ['Подождите завершения предыдущего процесса'],
             'hash': [1],
@@ -77,8 +77,8 @@ def training_model():
                         "hash": 1,
                         'time': f'{datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")}'})
 
-    process = Process(target=run_training)
-    process.start()
+    process = subprocess.Popen(["python3", "training.py", "5"])
+    current_process = process
 
     current_process = process
     df = pd.DataFrame({
