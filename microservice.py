@@ -56,11 +56,6 @@ def healthcheck():
 current_process = None
 
 
-def run_training():
-    command = f'python3 training.py 5'
-    subprocess.run(command, shell=True)
-
-
 @app.route('/training_model', methods=['POST'])
 def training_model():
     global current_process
@@ -78,7 +73,6 @@ def training_model():
                         'time': f'{datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")}'})
 
     process = subprocess.Popen(["python3", "training.py", "5"])
-    current_process = process
 
     current_process = process
     df = pd.DataFrame({
