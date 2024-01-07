@@ -2,15 +2,37 @@ import requests
 import random
 import json
 
-headers = {
-    'Content-Type': 'application/json'
-}
-# counter = 1
-# payload = json.dumps({
-#     "data_size": 1,
-#     'hash': counter
-# })
-# counter += 1
-# response = requests.post("http://127.0.0.1:5050/training_model", data=payload, headers=headers)
-response = requests.post("http://127.0.0.1:5050/training_model", headers=headers)
-print(response.json())
+
+def sendmsg():
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    url = "http://127.0.0.1:5050/sendmsg"
+
+    payload = json.dumps({"score": round(random.random(), 2)})
+
+    response = requests.post(url, data=payload, headers=headers)
+    print(response.text)
+    return f'{response.text}'
+
+
+# sendmsg()
+
+def healthcheck():
+    url = "http://127.0.0.1:5050/healthcheck"
+    response = requests.get(url)
+    print(response.text)
+    return f'{response.text}'
+
+
+# healthcheck()
+def training_model():
+    url = "http://127.0.0.1:5050/training_model"
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    response = requests.post("http://127.0.0.1:5050/training_model", headers=headers)
+    print(response.json())
+    return f'{response.json()}'
+# training_model()

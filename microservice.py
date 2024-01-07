@@ -10,10 +10,8 @@ import pandas as pd
 import numpy
 import time
 import csv
-from multiprocessing import Process
 import subprocess
 import os
-import hashlib
 
 numpy.random.seed(22)
 fake = Faker()
@@ -37,7 +35,6 @@ class LogInfo(db.Model):
 
 @app.route('/sendmsg', methods=['POST'])
 def send_message():
-    # score = request.form.get('score')
     data = request.get_json()
     score = float(data['score'])
     log_info = LogInfo(value=score)
@@ -56,7 +53,7 @@ def healthcheck():
 current_process = None
 
 
-@app.route('/training_model', methods=['POST'])
+@app.route('/training_model', methods=['POST', "GET"])
 def training_model():
     global current_process
 
@@ -86,6 +83,13 @@ def training_model():
                     "hash": 0,
                     'time': f'{datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")}'
                     })
+
+
+@app.route('/get_stat', methods=['POST'])
+def get_stat():
+    data = request.get_json()
+    value = int(data['hash_id'])
+    return jsonify({"hash_id": value})
 
 
 if __name__ == '__main__':
