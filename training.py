@@ -9,7 +9,6 @@ import sys
 import hashlib
 import logging
 
-
 numpy.random.seed(22)
 fake = Faker()
 
@@ -44,28 +43,22 @@ def result_metrics(*args, **kwargs):
     for j in range(int(size) * 5):  # 5 - количество метрик
         df = pd.DataFrame(generate_data(size))
         value_time = 0
+
         ################################ ПЕРОЕ ЗАДАНИЕ
-        unique_countries = len(df['country'].unique())  # Количество уникальных стран в выборке
+        unique_countries = df['country'].nunique()  # Количество уникальных стран в выборке
         time.sleep(value_time)
+
         ################################ ВТОРОЕ ЗАДАНИЕ
-        deposits_sum = df.groupby('country')['deposit'].sum()  # группируем страны
-        country_max_deposits = deposits_sum.idxmax()  # страна где больше всего депозитов
+        country_max_deposits = df.groupby('country', as_index=False).aggregate({'deposit': 'sum'}).sort_values(
+            'price', ascending=False).iloc[0]['country']  # страна где больше всего депозитов
         time.sleep(value_time)
+
         ################################ ТРЕТЬЕ ЗАДАНИЕ
-        email_count = df.groupby('id')['email'].nunique()
-
-        clients_with_emails = email_count[
-            email_count > 1]  # фильтруем только тех клиентов, у которых больше 1 email
-
-        # получаем количество клиентов с более чем 1 email
-        clients_count_email = len(clients_with_emails)
+        a = df.groupby('id')['email'].nunique() > 1  # количество клиентов у которых больше чем 1 email
+        clients_count_email = len(a[a == True])
         time.sleep(value_time)
+
         ################################ ЧЕТВЕРТОЕ ЗАДАНИЕ
-        country_count = df.groupby('id')['country'].nunique()
-
-        clients_countries = country_count[country_count > 1]
-
-        clients_count_countries = len(clients_countries)
 
         ################################  ПЯТОЕ ЗАДАНИЕ
         df['expenses_ratio'] = df['costs'] / df['deposit']  # создали новый столбец
