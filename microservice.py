@@ -12,6 +12,7 @@ import time
 import csv
 import subprocess
 import os
+import hashlib
 
 numpy.random.seed(22)
 fake = Faker()
@@ -57,32 +58,15 @@ current_process = None
 def training_model():
     global current_process
 
-    if current_process and current_process.poll() is None:
-        df = pd.DataFrame({
-            'message': ['Подождите завершения предыдущего процесса'],
-            'hash': [1],
-            'datetime': [f'{datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")}']
-        })
+    if current_process and current_process.poll() is None:  # если процесс запущен
+        return jsonify('Дождитесь завершения процесса')
 
-        df.to_csv('result.csv', mode='a', header=False, index=False)
-        return jsonify({"message": "Подождите завершения предыдущего процесса",
-                        "hash": 1,
-                        'time': f'{datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")}'})
+    date_micro = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    hash_date_micro = hashlib.md5(date_micro.encode())
 
-    process = subprocess.Popen(["python3", "training.py", "5"])
-
+    process = subprocess.Popen(["python3", "training.py", "5", f"{date_micro}", f"{hash_date_micro}"])
     current_process = process
-    df = pd.DataFrame({
-        'message': ['Процесс запущен'],
-        'hash': [0],
-        'datetime': [f'{datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")}']
-    })
-
-    df.to_csv('result.csv', mode='a', header=False, index=False)
-    return jsonify({"message": "Процесс запущен",
-                    "hash": 0,
-                    'time': f'{datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")}'
-                    })
+    return jsonify('Процесс запущен')
 
 
 @app.route('/get_stat', methods=['POST'])

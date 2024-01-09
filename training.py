@@ -1,3 +1,4 @@
+import os.path
 import random
 from faker import Faker
 from datetime import datetime, timezone
@@ -5,6 +6,7 @@ import pandas as pd
 import numpy
 import time
 import sys
+import hashlib
 
 numpy.random.seed(22)
 fake = Faker()
@@ -35,9 +37,9 @@ def generate_data(size):
     return result
 
 
-def result_metrics():
+def result_metrics(*args, **kwargs):
     df = pd.DataFrame(generate_data(size))
-    value_time = 5
+    value_time = 0
     ################################ ПЕРОЕ ЗАДАНИЕ
     unique_countries = len(df['country'].unique())  # Количество уникальных стран в выборке
     time.sleep(value_time)
@@ -68,16 +70,48 @@ def result_metrics():
 
     email_max_ratio_client = max_ratio_client['email']
     time.sleep(value_time)
+    name_metrics = ['Количество уникальных стран в выборке',
+                    'Страна в которой больше всего осталось депозитов у клиентов',
+                    'Количество клиентов у которых больше 1 email в выборке',
+                    'Количество клиентов  которые присутствуют больше чем в 1 стране',
+                    'Email клиента с максимальной долей трат от депозита']
+    value_metrics = [unique_countries,
+                     country_max_deposits,
+                     clients_count_email,
+                     clients_count_countries,
+                     email_max_ratio_client]
+    counter = 0
 
-    df = pd.DataFrame({
-        'feature': ['Страна в которой больше всего осталось депозитов'],
-        'value': [country_max_deposits],
-        'datetime': [datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")]
-    })
+    date = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    hash_date = hashlib.md5(date.encode())
+    if 'date_term' and 'hash_date_term' in locals():
+        date = date_term
+        hash_date = hashlib.md5(date.encode())
+    for j in range(int(size) * len(name_metrics)):
 
-    df.to_csv('result.csv', mode='a', header=False, index=False)
+        df = pd.DataFrame({
+            'hash': [hash_date.hexdigest()],
+            'feature': [name_metrics[counter]],
+            'value': [value_metrics[counter]],
+            'datetime': [date]
+        })
+        counter += 1
+        if counter >= 5:
+            counter = 0
+
+        if os.path.exists('result.csv'):
+            df.to_csv('result.csv', mode='a', header=False, index=False)
+        else:
+            df.to_csv('result.csv', mode='a', header=True, index=False)
+
     print('Операция выполнена')
 
 
-size = sys.argv[1]
-result_metrics()
+try:
+    size = sys.argv[1]
+    date_term = sys.argv[2]
+    hash_date_term = sys.argv[3]
+    result_metrics(size, date_term, hash_date_term)
+except IndexError:
+    size = sys.argv[1]
+    result_metrics(size, None, None)
