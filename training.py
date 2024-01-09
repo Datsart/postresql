@@ -7,6 +7,8 @@ import numpy
 import time
 import sys
 import hashlib
+import logging
+
 
 numpy.random.seed(22)
 fake = Faker()

@@ -1,3 +1,5 @@
+import json
+
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
@@ -17,13 +19,12 @@ import hashlib
 numpy.random.seed(22)
 fake = Faker()
 
+health = HealthCheck()
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://artemdatsenko:19980723@localhost:5432/log_info'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-
-health = HealthCheck()
 
 
 class LogInfo(db.Model):
@@ -59,6 +60,8 @@ def training_model():
     global current_process
 
     if current_process and current_process.poll() is None:  # если процесс запущен
+        with open('running.log', 'w', encoding='UTF-8') as file:
+            json.dump({'running': 1}, file)
         return jsonify('Дождитесь завершения процесса')
 
     date_micro = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
@@ -66,6 +69,8 @@ def training_model():
 
     process = subprocess.Popen(["python3", "training.py", "5", f"{date_micro}", f"{hash_date_micro}"])
     current_process = process
+    with open('running.log', 'w', encoding='UTF-8') as file:
+        json.dump({'running': 0}, file)
     return jsonify('Процесс запущен')
 
 
