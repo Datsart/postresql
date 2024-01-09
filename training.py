@@ -50,22 +50,21 @@ def result_metrics(*args, **kwargs):
 
         ################################ ВТОРОЕ ЗАДАНИЕ
         country_max_deposits = df.groupby('country', as_index=False).aggregate({'deposit': 'sum'}).sort_values(
-            'price', ascending=False).iloc[0]['country']  # страна где больше всего депозитов
+            'deposit', ascending=False).iloc[0]['country']  # страна где больше всего депозитов
         time.sleep(value_time)
 
         ################################ ТРЕТЬЕ ЗАДАНИЕ
-        a = df.groupby('id')['email'].nunique() > 1  # количество клиентов у которых больше чем 1 email
-        clients_count_email = len(a[a == True])
+        a = df.groupby('id')['email'].nunique() > 1
+        clients_count_email = len(a[a == True])  # количество клиентов у которых больше чем 1 email
         time.sleep(value_time)
 
         ################################ ЧЕТВЕРТОЕ ЗАДАНИЕ
-
+        a = df.groupby('id')['country'].nunique() > 1
+        clients_count_countries = len(a[a == True])
         ################################  ПЯТОЕ ЗАДАНИЕ
-        df['expenses_ratio'] = df['costs'] / df['deposit']  # создали новый столбец
-
-        max_ratio_client = df.loc[df['expenses_ratio'].idxmax()]  # достали клиента с max
-
-        email_max_ratio_client = max_ratio_client['email']
+        df['max_dolya'] = df['costs'] / df['deposit']
+        b = df.sort_values(by=['max_dolya'], ascending=False)
+        email_max_ratio_client = b['email'].iloc[0]
         time.sleep(value_time)
         name_metrics = ['Количество уникальных стран в выборке',
                         'Страна в которой больше всего осталось депозитов у клиентов',
