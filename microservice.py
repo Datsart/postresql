@@ -67,7 +67,7 @@ def training_model():
     date_micro = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     hash_date_micro = hashlib.md5(date_micro.encode())
 
-    process = subprocess.Popen(["python3", "training.py", "5", f"{date_micro}", f"{hash_date_micro}"])
+    process = subprocess.Popen(["python3", "training.py", "100", f"{date_micro}", f"{hash_date_micro}"])
     current_process = process
     with open('running.log', 'w', encoding='UTF-8') as file:
         json.dump({'running': 0}, file)

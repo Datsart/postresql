@@ -39,49 +39,50 @@ def generate_data(size):
 
 
 def result_metrics(*args, **kwargs):
-    counter = 0
-    for j in range(int(size) * 5):  # 5 - количество метрик
-        df = pd.DataFrame(generate_data(size))
-        value_time = 0
+    df = pd.DataFrame(generate_data(size))
+    value_time = 5
 
-        ################################ ПЕРОЕ ЗАДАНИЕ
-        unique_countries = df['country'].nunique()  # Количество уникальных стран в выборке
-        time.sleep(value_time)
+    ################################ ПЕРОЕ ЗАДАНИЕ
+    unique_countries = df['country'].nunique()  # Количество уникальных стран в выборке
+    time.sleep(value_time)
 
-        ################################ ВТОРОЕ ЗАДАНИЕ
-        country_max_deposits = df.groupby('country', as_index=False).aggregate({'deposit': 'sum'}).sort_values(
-            'deposit', ascending=False).iloc[0]['country']  # страна где больше всего депозитов
-        time.sleep(value_time)
+    ################################ ВТОРОЕ ЗАДАНИЕ
+    country_max_deposits = df.groupby('country', as_index=False).aggregate({'deposit': 'sum'}).sort_values(
+        'deposit', ascending=False).iloc[0]['country']  # страна где больше всего депозитов
+    time.sleep(value_time)
 
-        ################################ ТРЕТЬЕ ЗАДАНИЕ
-        a = df.groupby('id')['email'].nunique() > 1
-        clients_count_email = len(a[a == True])  # количество клиентов у которых больше чем 1 email
-        time.sleep(value_time)
+    ################################ ТРЕТЬЕ ЗАДАНИЕ
+    a = df.groupby('id')['email'].nunique() > 1
+    clients_count_email = len(a[a == True])  # количество клиентов у которых больше чем 1 email
+    time.sleep(value_time)
 
-        ################################ ЧЕТВЕРТОЕ ЗАДАНИЕ
-        a = df.groupby('id')['country'].nunique() > 1
-        clients_count_countries = len(a[a == True])
-        ################################  ПЯТОЕ ЗАДАНИЕ
-        df['max_dolya'] = df['costs'] / df['deposit']
-        b = df.sort_values(by=['max_dolya'], ascending=False)
-        email_max_ratio_client = b['email'].iloc[0]
-        time.sleep(value_time)
-        name_metrics = ['Количество уникальных стран в выборке',
-                        'Страна в которой больше всего осталось депозитов у клиентов',
-                        'Количество клиентов у которых больше 1 email в выборке',
-                        'Количество клиентов  которые присутствуют больше чем в 1 стране',
-                        'Email клиента с максимальной долей трат от депозита']
-        value_metrics = [unique_countries,
-                         country_max_deposits,
-                         clients_count_email,
-                         clients_count_countries,
-                         email_max_ratio_client]
+    ################################ ЧЕТВЕРТОЕ ЗАДАНИЕ
+    a = df.groupby('id')['country'].nunique() > 1
+    clients_count_countries = len(a[a == True])
+    ################################  ПЯТОЕ ЗАДАНИЕ
+    group_sum_dataframe = df.groupby('email').aggregate({'costs': 'sum', 'deposit': 'sum'})
+    group_sum_dataframe['max_dolya'] = group_sum_dataframe['costs'] / group_sum_dataframe['deposit']
+    email_max_ratio_client = group_sum_dataframe.sort_values(by=['max_dolya'], ascending=False).index[0]
+    time.sleep(value_time)
 
-        date = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    name_metrics = ['Количество уникальных стран в выборке',
+                    'Страна в которой больше всего осталось депозитов у клиентов',
+                    'Количество клиентов у которых больше 1 email в выборке',
+                    'Количество клиентов  которые присутствуют больше чем в 1 стране',
+                    'Email клиента с максимальной долей трат от депозита']
+    value_metrics = [unique_countries,
+                     country_max_deposits,
+                     clients_count_email,
+                     clients_count_countries,
+                     email_max_ratio_client]
+
+    date = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    hash_date = hashlib.md5(date.encode())
+    if 'date_term' and 'hash_date_term' in locals():
+        date = date_term
         hash_date = hashlib.md5(date.encode())
-        if 'date_term' and 'hash_date_term' in locals():
-            date = date_term
-            hash_date = hashlib.md5(date.encode())
+    counter = 0
+    for i in range(5):
         df = pd.DataFrame({
             'hash': [hash_date.hexdigest()],
             'feature': [name_metrics[counter]],
@@ -101,10 +102,10 @@ def result_metrics(*args, **kwargs):
 
 
 try:
-    size = sys.argv[1]
+    size = int(sys.argv[1])
     date_term = sys.argv[2]
     hash_date_term = sys.argv[3]
     result_metrics(size, date_term, hash_date_term)
 except IndexError:
-    size = sys.argv[1]
+    size = int(sys.argv[1])
     result_metrics(size)
