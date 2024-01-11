@@ -40,7 +40,7 @@ def generate_data(size):
 
 def result_metrics(*args, **kwargs):
     df = pd.DataFrame(generate_data(size))
-    value_time = 5
+    value_time = 0
 
     ################################ ПЕРОЕ ЗАДАНИЕ
     unique_countries = df['country'].nunique()  # Количество уникальных стран в выборке
@@ -81,22 +81,22 @@ def result_metrics(*args, **kwargs):
     if 'date_term' and 'hash_date_term' in locals():
         date = date_term
         hash_date = hashlib.md5(date.encode())
-    counter = 0
-    for i in range(5):
-        df = pd.DataFrame({
-            'hash': [hash_date.hexdigest()],
-            'feature': [name_metrics[counter]],
-            'value': [value_metrics[counter]],
-            'datetime': [date]
-        })
-        counter += 1
-        if counter >= 5:
-            counter = 0
 
-        if os.path.exists('result.csv'):
-            df.to_csv('result.csv', mode='a', header=False, index=False)
-        else:
-            df.to_csv('result.csv', mode='a', header=True, index=False)
+    _dict = {'hash': [hash_date.hexdigest()] * 5,
+             'feature': ['Количество уникальных стран в выборке',
+                         'Страна в которой больше всего осталось депозитов у клиентов',
+                         'Количество клиентов у которых больше 1 email в выборке',
+                         'Количество клиентов  которые присутствуют больше чем в 1 стране',
+                         'Email клиента с максимальной долей трат от депозита'],
+             'value': [unique_countries, country_max_deposits, clients_count_email, clients_count_countries,
+                       email_max_ratio_client],
+             'datetime': [date] * 5,
+             }
+    df = pd.DataFrame(_dict)
+    if os.path.exists('result.csv'):
+        df.to_csv('result.csv', mode='a', header=False, index=False)
+    else:
+        df.to_csv('result.csv', mode='a', header=True, index=False)
 
     print('Операция выполнена')
 
