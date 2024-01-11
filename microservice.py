@@ -74,11 +74,10 @@ def training_model():
     return jsonify('Процесс запущен')
 
 
-@app.route('/get_stat', methods=['POST'])
+@app.route('/get_stat', methods=['POST', 'GET'])
 def get_stat():
     data = request.get_json()
-    value = int(data['hash_id'])
-    return jsonify({"hash_id": value})
+    return jsonify(data)
 
 
 if __name__ == '__main__':
