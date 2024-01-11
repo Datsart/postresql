@@ -5,8 +5,6 @@ from get_stat import get_response_stat
 
 bot = telebot.TeleBot('6985148923:AAHwmhG0KogYrTRho9A6gWCtHTT30AsXGag')
 
-user_inputs = {}
-
 
 def send_routes(chat_id):
     keyboard = types.InlineKeyboardMarkup()
@@ -46,9 +44,12 @@ def callback(call):
 
 
 def process_hash_input(message):
-    hash_id = message.text
-    result = get_response_stat(hash_id)
-    bot.send_message(message.chat.id, result)
+    try:
+        hash_id = message.text
+        result = get_response_stat(hash_id)
+        bot.send_message(message.chat.id, result)
+    except BaseException:
+        bot.send_message(message.chat.id, 'Такого hash нет')
 
     send_routes(message.chat.id)
 

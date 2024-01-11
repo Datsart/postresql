@@ -97,7 +97,6 @@ def result_metrics(*args, **kwargs):
         df.to_csv('result.csv', mode='a', header=False, index=False)
     else:
         df.to_csv('result.csv', mode='a', header=True, index=False)
-
     print('Операция выполнена')
 
 
