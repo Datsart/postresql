@@ -1,5 +1,5 @@
 import json
-
+import sys
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
@@ -63,15 +63,15 @@ def training_model():
         with open('running.log', 'w', encoding='UTF-8') as file:
             json.dump({'running': 1}, file)
         return jsonify('Дождитесь завершения процесса')
-
+    data_response = request.get_json()
+    size = data_response['size']
     date_micro = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     hash_date_micro = hashlib.md5(date_micro.encode())
-
-    process = subprocess.Popen(["python3", "training.py", "100", f"{date_micro}", f"{hash_date_micro}"])
+    process = subprocess.Popen(["python3", "training.py", f"{size}", f"{date_micro}", f"{hash_date_micro}"])
     current_process = process
     with open('running.log', 'w', encoding='UTF-8') as file:
         json.dump({'running': 0}, file)
-    return jsonify('Процесс запущен')
+    return jsonify(f'Процесс запущен и size = {size}')
 
 
 @app.route('/get_stat', methods=['POST', 'GET'])

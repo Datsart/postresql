@@ -35,12 +35,13 @@ def generate_data(size):
             'date': formatted_date,
         }
         result.append(data_dict)
+    print(f'Сгенерировано {size} записей')
     return result
 
 
 def result_metrics(*args, **kwargs):
     df = pd.DataFrame(generate_data(size))
-    value_time = 0
+    value_time = 5
 
     ################################ ПЕРОЕ ЗАДАНИЕ
     unique_countries = df['country'].nunique()  # Количество уникальных стран в выборке
