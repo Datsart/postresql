@@ -15,6 +15,7 @@ import csv
 import subprocess
 import os
 import hashlib
+from get_stat import get_info
 
 numpy.random.seed(22)
 fake = Faker()
@@ -76,8 +77,10 @@ def training_model():
 
 @app.route('/get_stat', methods=['POST', 'GET'])
 def get_stat():
-    data = request.get_json()
-    return jsonify(data)
+    data_response = request.get_json()
+    hash_id = data_response['hash_id']
+    # data_result = {'info': get_info(hash_id)}
+    return jsonify(get_info(hash_id))
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 import telebot
 from telebot import types
 from test_response import *
-from get_stat import get_response_stat
+from get_stat import get_info
 
 bot = telebot.TeleBot('6985148923:AAHwmhG0KogYrTRho9A6gWCtHTT30AsXGag')
 
@@ -35,8 +35,8 @@ def callback(call):
         send_routes(call.message.chat.id)
 
     elif call.data == '/training_model':
-        bot.send_message(call.message.chat.id, training_model())
-        send_routes(call.message.chat.id)
+        bot.send_message(call.message.chat.id, 'Введи size')
+        bot.register_next_step_handler(call.message, process_size_input)
 
     elif call.data == '/get_stat':
         bot.send_message(call.message.chat.id, 'Введи hash_id')
@@ -50,6 +50,17 @@ def process_hash_input(message):
         bot.send_message(message.chat.id, result)
     except BaseException:
         bot.send_message(message.chat.id, 'Такого hash нет')
+
+    send_routes(message.chat.id)
+
+
+def process_size_input(message):
+    try:
+        size = int(message.text)
+        result = training_model(size)
+        bot.send_message(message.chat.id, result)
+    except BaseException:
+        bot.send_message(message.chat.id, 'Введи число')
 
     send_routes(message.chat.id)
 
